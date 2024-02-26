@@ -1,0 +1,73 @@
+:root {
+    --white: rgb(230, 230, 230);
+}
+
+* {
+    color: var(--white);
+    font-family: sans-serif;
+}
+
+html {
+    background-repeat: no-repeat;
+    height: 100%;
+    background-color: rgb(0, 0, 0);
+}
+
+#sel-call-container {
+    display: flex;
+    justify-content: center;
+}
+
+#input-container {
+    display: flex;
+    justify-content: center;
+}
+
+#card-input {
+    border-radius: 8px;
+    width: 400px;
+    padding-inline: 8px;
+    height: 22px;
+    color: black;
+}
+
+#card-img {
+    border-radius: 12px;
+}
+
+#card-container {
+    padding-top: 50px;
+    display: flex;
+    justify-content: center;
+}
+
+#card-information {
+    color: --white;
+    background-color: rgb(10, 10, 10);
+    border-radius: 3px;
+    padding: 10px;
+    margin: 0px;
+    width: 400px;
+    list-style: none;
+    margin-left: 20px;
+}
+
+#card-information li {
+    padding-bottom: 15px;
+    white-space: pre-wrap;
+}
+
+#card-information #ci-preloaded {
+    white-space: normal;
+}
+
+#rulings {
+    list-style: none;
+}
+
+#rulings li {
+    background-color: rgb(20, 20, 20);
+    margin-block: 20px;
+    padding: 10px;
+    border-radius: 5px;
+}
