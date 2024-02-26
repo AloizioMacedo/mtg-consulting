@@ -1,4 +1,7 @@
+mod card;
 use leptos::*;
+
+use card::CardResult;
 
 fn main() {
     leptos::mount_to_body(|| {
@@ -15,23 +18,27 @@ fn main() {
 
 #[component]
 fn App() -> impl IntoView {
+    let (card_result, set_card_result) = create_signal::<CardResult>(CardResult::NoMatch);
+
     view! {
         <div id="input-container">
             <input
-                class="form-control"
+                on:keypress=|_| { leptos::logging::log!("submitted") }
                 type="search"
                 name="search"
                 id="card-input"
-                hx-post="/get-card"
-                hx-trigger="keyup[keyCode==13]"
-                hx-target="#card-and-rulings-container"
                 placeholder="Black Lotus"
-                hx-swap="innerHTML"
-                hx-push-url="style.css"
             />
         </div>
+        <CardAndRulingsContainer card_result/>
+    }
+}
+
+#[component]
+fn CardAndRulingsContainer(card_result: ReadSignal<CardResult>) -> impl IntoView {
+    view! {
         <div id="card-and-rulings-container">
-            <CardContainer/>
+            <CardContainer card_result/>
             <hr/>
             <Rulings/>
         </div>
@@ -39,7 +46,7 @@ fn App() -> impl IntoView {
 }
 
 #[component]
-fn CardContainer() -> impl IntoView {
+fn CardContainer(card_result: ReadSignal<CardResult>) -> impl IntoView {
     view! {
         <div id="card-container">
             <img
