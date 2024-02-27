@@ -47,7 +47,6 @@ fn App() -> impl IntoView {
         <div id="input-container">
             <Form method="GET" action="">
                 <input type="search" name="q" id="card-input" placeholder="Black Lotus"/>
-                <input type="submit"/>
             </Form>
         </div>
 
