@@ -2,13 +2,13 @@ use serde::{Deserialize, Serialize};
 
 const CORE_FUZZY_URL: &str = "https://api.scryfall.com/cards/named?fuzzy=";
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Card {
-    name: String,
-    image_uris: Images,
-    type_line: String,
-    oracle_text: String,
-    rulings_uri: String,
+    pub name: String,
+    pub image_uris: Images,
+    pub type_line: String,
+    pub oracle_text: String,
+    pub rulings_uri: String,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -35,12 +35,12 @@ struct HtmlBuilder {
     rulings: Vec<String>,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
-struct Images {
-    normal: String,
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct Images {
+    pub normal: String,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub enum CardResult {
     Success(Card),
     NoMatch,
