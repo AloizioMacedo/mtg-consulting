@@ -24,60 +24,47 @@ fn main() {
     })
 }
 
+#[derive(Params, PartialEq, Clone)]
+struct NameSearch {
+    q: Option<String>,
+}
+
 #[component]
 fn App() -> impl IntoView {
-    let (card_result, set_card_result) = create_signal::<CardResult>(CardResult::Unloaded);
-    let (rulings, set_rulings) = create_signal::<Vec<Ruling>>(Vec::new());
+    let query = use_query::<NameSearch>();
 
-    let input_element: NodeRef<html::Input> = create_node_ref();
+    let resource = create_resource(query, |q| async move {
+        let namesearch = q.clone().unwrap();
 
-    let action = create_action(
-        move |input: &(WriteSignal<CardResult>, String, WriteSignal<Vec<Ruling>>)| {
-            let input = input.clone();
-            async move {
-                let card_result = get_card_result(&input.1).await;
+        let Some(q) = namesearch.q else {
+            return (CardResult::Unloaded, Vec::new());
+        };
 
-                let rulings = match &card_result {
-                    CardResult::Success(card) => get_rulings(card).await,
-                    _ => Vec::new(),
-                };
-
-                input.0.set(card_result);
-                input.2.set(rulings);
-            }
-        },
-    );
+        get_card_result_and_rulings(&q).await
+    });
 
     view! {
         <div id="input-container">
-            <input
-                on:keypress=move |e| {
-                    if e.key_code() == 13 {
-                        action
-                            .dispatch((
-                                set_card_result,
-                                input_element.get().unwrap().value(),
-                                set_rulings,
-                            ))
-                    }
-                }
-
-                node_ref=input_element
-                type="search"
-                name="search"
-                id="card-input"
-                placeholder="Black Lotus"
-            />
+            <Form method="GET" action="">
+                <input type="search" name="q" id="card-input" placeholder="Black Lotus"/>
+                <input type="submit"/>
+            </Form>
         </div>
-        <CardAndRulingsContainer card_result rulings/>
+
+        {move || {
+            if let Some((card_result, rulings)) = resource.get() {
+                view! { <CardAndRulingsContainer card_result rulings/> }
+            } else {
+                view! {
+                    <CardAndRulingsContainer card_result=CardResult::Unloaded rulings=Vec::new()/>
+                }
+            }
+        }}
     }
 }
 
 #[component]
-fn CardAndRulingsContainer(
-    card_result: ReadSignal<CardResult>,
-    rulings: ReadSignal<Vec<Ruling>>,
-) -> impl IntoView {
+fn CardAndRulingsContainer(card_result: CardResult, rulings: Vec<Ruling>) -> impl IntoView {
     view! {
         <div id="card-and-rulings-container">
             <CardContainer card_result/>
@@ -88,11 +75,11 @@ fn CardAndRulingsContainer(
 }
 
 #[component]
-fn CardContainer(card_result: ReadSignal<CardResult>) -> impl IntoView {
+fn CardContainer(card_result: CardResult) -> impl IntoView {
     view! {
         <div id="card-container">
             {move || {
-                match card_result.get() {
+                match card_result.clone() {
                     CardResult::Success(
                         Card { name, image_uris: Images { normal }, type_line, oracle_text, .. },
                     ) => {
@@ -161,18 +148,23 @@ fn CardContainer(card_result: ReadSignal<CardResult>) -> impl IntoView {
 }
 
 #[component]
-fn Rulings(rulings: ReadSignal<Vec<Ruling>>) -> impl IntoView {
+fn Rulings(rulings: Vec<Ruling>) -> impl IntoView {
     leptos::view! {
         <div id="rulings-container">
             <ul id="rulings">
-                <For
-                    each=rulings
-                    key=|ruling| ruling.comment.clone()
-                    children=move |ruling| {
-                        view! { <li>{ruling.comment}</li> }
-                    }
-                />
+                {rulings.into_iter().map(|ruling| view! { <li>{ruling.comment}</li> }).collect::<Vec<_>>()}
             </ul>
         </div>
     }
+}
+
+async fn get_card_result_and_rulings(name: &str) -> (CardResult, Vec<Ruling>) {
+    let card_result = get_card_result(name).await;
+
+    let rulings = match &card_result {
+        CardResult::Success(card) => get_rulings(card).await,
+        _ => Vec::new(),
+    };
+
+    (card_result, rulings)
 }
