@@ -45,6 +45,7 @@ pub enum CardResult {
     Success(Card),
     NoMatch,
     TooManyMatches,
+    Unloaded,
 }
 
 pub async fn get_card_result(name: &str) -> CardResult {

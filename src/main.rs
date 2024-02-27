@@ -26,7 +26,7 @@ fn main() {
 
 #[component]
 fn App() -> impl IntoView {
-    let (card_result, set_card_result) = create_signal::<CardResult>(CardResult::NoMatch);
+    let (card_result, set_card_result) = create_signal::<CardResult>(CardResult::Unloaded);
     let (rulings, set_rulings) = create_signal::<Vec<Ruling>>(Vec::new());
 
     let input_element: NodeRef<html::Input> = create_node_ref();
@@ -106,7 +106,35 @@ fn CardContainer(card_result: ReadSignal<CardResult>) -> impl IntoView {
                             </ul>
                         }
                     }
-                    _ => {
+                    CardResult::NoMatch => {
+                        view! {
+                            <img
+                                id="card-img"
+                                src="/princess.jpg"
+                                alt="Your princess is in another castle"
+                                width="265px"
+                                height="370px"
+                            />
+                            <ul id="card-information">
+                                <li>"No matches found"</li>
+                            </ul>
+                        }
+                    }
+                    CardResult::TooManyMatches => {
+                        view! {
+                            <img
+                                id="card-img"
+                                src="/masterskywalker.jpg"
+                                alt="Master Skywalker"
+                                width="265px"
+                                height="370px"
+                            />
+                            <ul id="card-information">
+                                <li>"Too many matches"</li>
+                            </ul>
+                        }
+                    }
+                    CardResult::Unloaded => {
                         view! {
                             <img
                                 id="card-img"
