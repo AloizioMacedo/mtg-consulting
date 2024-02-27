@@ -1047,7 +1047,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "mtg-vercel"
+name = "mtg-consulting"
 version = "0.1.0"
 dependencies = [
  "console_error_panic_hook",
