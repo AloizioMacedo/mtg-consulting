@@ -47,11 +47,6 @@ pub enum CardResult {
     TooManyMatches,
 }
 
-#[derive(Deserialize)]
-struct CardQuery {
-    search: String,
-}
-
 pub async fn get_card_result(name: &str) -> CardResult {
     let response = reqwest::get(CORE_FUZZY_URL.to_string() + name)
         .await
