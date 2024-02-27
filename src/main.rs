@@ -3,7 +3,7 @@ mod card;
 use leptos::*;
 use leptos_router::*;
 
-use card::{get_card_result, Card, CardResult, Images};
+use card::{get_card_result, get_rulings, Card, CardResult, Images, Ruling};
 
 fn main() {
     console_error_panic_hook::set_once();
@@ -27,20 +27,38 @@ fn main() {
 #[component]
 fn App() -> impl IntoView {
     let (card_result, set_card_result) = create_signal::<CardResult>(CardResult::NoMatch);
+    let (rulings, set_rulings) = create_signal::<Vec<Ruling>>(Vec::new());
 
     let input_element: NodeRef<html::Input> = create_node_ref();
 
-    let action = create_action(|input: &(WriteSignal<CardResult>, String)| {
-        let input = input.clone();
-        async move { assign_card(&input).await }
-    });
+    let action = create_action(
+        move |input: &(WriteSignal<CardResult>, String, WriteSignal<Vec<Ruling>>)| {
+            let input = input.clone();
+            async move {
+                let card_result = get_card_result(&input.1).await;
+
+                let rulings = match &card_result {
+                    CardResult::Success(card) => get_rulings(card).await,
+                    _ => Vec::new(),
+                };
+
+                input.0.set(card_result);
+                input.2.set(rulings);
+            }
+        },
+    );
 
     view! {
         <div id="input-container">
             <input
                 on:keypress=move |e| {
                     if e.key_code() == 13 {
-                        action.dispatch((set_card_result, input_element.get().unwrap().value()))
+                        action
+                            .dispatch((
+                                set_card_result,
+                                input_element.get().unwrap().value(),
+                                set_rulings,
+                            ))
                     }
                 }
 
@@ -51,17 +69,20 @@ fn App() -> impl IntoView {
                 placeholder="Black Lotus"
             />
         </div>
-        <CardAndRulingsContainer card_result/>
+        <CardAndRulingsContainer card_result rulings/>
     }
 }
 
 #[component]
-fn CardAndRulingsContainer(card_result: ReadSignal<CardResult>) -> impl IntoView {
+fn CardAndRulingsContainer(
+    card_result: ReadSignal<CardResult>,
+    rulings: ReadSignal<Vec<Ruling>>,
+) -> impl IntoView {
     view! {
         <div id="card-and-rulings-container">
             <CardContainer card_result/>
             <hr/>
-            <Rulings/>
+            <Rulings rulings/>
         </div>
     }
 }
@@ -112,16 +133,18 @@ fn CardContainer(card_result: ReadSignal<CardResult>) -> impl IntoView {
 }
 
 #[component]
-fn Rulings() -> impl IntoView {
-    view! {
+fn Rulings(rulings: ReadSignal<Vec<Ruling>>) -> impl IntoView {
+    leptos::view! {
         <div id="rulings-container">
-            <ul id="rulings"></ul>
+            <ul id="rulings">
+                <For
+                    each=rulings
+                    key=|ruling| ruling.comment.clone()
+                    children=move |ruling| {
+                        view! { <li>{ruling.comment}</li> }
+                    }
+                />
+            </ul>
         </div>
     }
-}
-
-async fn assign_card(input: &(WriteSignal<CardResult>, String)) {
-    let result = get_card_result(&input.1).await;
-
-    input.0.set(result);
 }

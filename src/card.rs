@@ -17,13 +17,13 @@ struct CardError {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-struct Rulings {
+pub struct Rulings {
     data: Vec<Ruling>,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
-struct Ruling {
-    comment: String,
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct Ruling {
+    pub comment: String,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -78,4 +78,14 @@ pub async fn get_card_result(name: &str) -> CardResult {
             }
         }
     }
+}
+
+pub async fn get_rulings(card: &Card) -> Vec<Ruling> {
+    reqwest::get(&card.rulings_uri)
+        .await
+        .expect("Should return response.")
+        .json::<Rulings>()
+        .await
+        .unwrap()
+        .data
 }
